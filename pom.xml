@@ -5,7 +5,7 @@
 
     <groupId>network.limewire.sdk</groupId>
     <artifactId>sdk-java</artifactId>
-    <version>0.1.1-rc.1</version>
+    <version>0.1.1</version>
     <packaging>jar</packaging>
 
     <name>lmwrntwrk-sdk-java</name>
@@ -297,17 +297,6 @@
                             </execution>
                         </executions>
                     </plugin>
-<!--                    <plugin>-->
-<!--                        <groupId>org.sonatype.plugins</groupId>-->
-<!--                        <artifactId>nexus-staging-maven-plugin</artifactId>-->
-<!--                        <version>1.7.0</version>-->
-<!--                        <extensions>true</extensions>-->
-<!--                        <configuration>-->
-<!--                            <serverId>ossrh</serverId>-->
-<!--                            <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>-->
-<!--                            <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
-<!--                        </configuration>-->
-<!--                    </plugin>-->
                 </plugins>
             </build>
         </profile>

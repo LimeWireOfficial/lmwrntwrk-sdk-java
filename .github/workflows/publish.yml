@@ -2,9 +2,6 @@ name: Publish to Maven Central
 
 on:
   push:
-    branches:
-      - main
-      - chore/initial-setup
     tags:
       - 'v*'
 
@@ -37,19 +34,10 @@ jobs:
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: Publish Snapshot
-#        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        if: github.event_name == 'push'
-        run: mvn clean deploy -Prelease -DskipTests
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-
       - name: Publish Release
         if: startsWith(github.ref, 'refs/tags/v')
         run: mvn clean deploy -Prelease -DskipTests
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
