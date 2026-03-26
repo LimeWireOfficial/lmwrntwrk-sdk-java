@@ -40,7 +40,7 @@ jobs:
       - name: Publish Snapshot
 #        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         if: github.event_name == 'push'
-        run: mvn clean deploy -DskipTests
+        run: mvn clean deploy -Prelease -DskipTests
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
