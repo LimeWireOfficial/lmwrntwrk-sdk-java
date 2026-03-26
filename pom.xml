@@ -6,10 +6,35 @@
     <groupId>network.limewire.sdk</groupId>
     <artifactId>sdk-java</artifactId>
     <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-    <name>limewire-network-sdk-java</name>
+    <name>lmwrntwrk-sdk-java</name>
     <url>https://limewire.network</url>
     <description>LimewireNetwork Java SDK</description>
+
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License v2.1</name>
+            <url>https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>limewire</id>
+            <name>Limewire</name>
+            <email>services@limewire.com</email>
+            <organization>Limewire</organization>
+            <organizationUrl>https://limewire.com</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/LimeWireOfficial/lmwrntwrk-sdk-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com/LimeWireOfficial/lmwrntwrk-sdk-java.git</developerConnection>
+        <url>https://github.com/LimeWireOfficial/lmwrntwrk-sdk-java</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -173,6 +198,21 @@
                     <execution>
                         <goals>
                             <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Sources JAR — mandatory for Maven Central -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
