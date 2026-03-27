@@ -29,6 +29,22 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
+      - name: Extract version from tag
+        id: extract_version
+        #run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV  # Extracts '1.2.3' from 'v1.2.3'
+        run: echo "RELEASE_VERSION=0.1.1-rc.2" >> $GITHUB_ENV  # Extracts '1.2.3' from 'v1.2.3'
+
+      - name: Update POM version
+        run: mvn versions:set -DnewVersion=${{ env.RELEASE_VERSION }} -DgenerateBackupPoms=false
+
+      - name: Commit updated POM
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add pom.xml
+          git commit -m "Update version to ${{ env.RELEASE_VERSION }}"
+          git push
+
       - name: Build
         run: mvn -f pom.xml clean install --no-transfer-progress
         env:
