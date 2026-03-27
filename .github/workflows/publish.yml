@@ -2,6 +2,9 @@ name: Publish to Maven Central
 
 on:
   push:
+    branches:
+      - main
+      - chore/initial-setup
     tags:
       - 'v*'
 
@@ -51,7 +54,8 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Publish Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        #if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push'
         run: mvn clean deploy -Prelease -DskipTests
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
