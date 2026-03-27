@@ -1,5 +1,8 @@
 name: Publish to Maven Central
 
+permissions:
+  contents: write
+
 on:
   push:
     tags:
@@ -42,7 +45,7 @@ jobs:
           git config user.email "actions@github.com"
           git add pom.xml
           git commit -m "Update version to ${{ env.RELEASE_VERSION }}"
-          git push
+          git push origin HEAD:main
 
       - name: Build
         run: mvn -f pom.xml clean install --no-transfer-progress
