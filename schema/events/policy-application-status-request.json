@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/policy-application-status.schema.json",
+  "title": "PolicyApplicationStatusRequest",
+  "description": "Schema for PolicyApplicationStatusRequest object",
+  "type": "object",
+  "properties": {
+    "policyId": {
+      "type": "string",
+      "description": "Unique identifier for the policy"
+    },
+    "policyContent": {
+      "type": "string",
+      "description": "Content of the policy"
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message, if any"
+    },
+    "accountId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "Account id that performed the action"
+    },
+    "buckets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of bucket names used in the policy"
+    }
+  },
+  "required": [
+    "policyId",
+    "policyContent",
+    "accountId",
+    "buckets"
+  ],
+  "additionalProperties": false
+}
