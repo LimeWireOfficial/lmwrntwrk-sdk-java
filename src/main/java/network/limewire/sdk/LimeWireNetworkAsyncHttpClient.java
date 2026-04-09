@@ -7,6 +7,7 @@ import network.limewire.sdk.footer.BinaryFooterCodec;
 import network.limewire.sdk.footer.FooterOptions;
 import network.limewire.sdk.footer.FooterSession;
 import network.limewire.sdk.footer.FooterSessionFactory;
+import network.limewire.sdk.graphql.GraphQLClient;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -37,11 +38,28 @@ public final class LimeWireNetworkAsyncHttpClient implements SdkAsyncHttpClient 
     private final ValidatorEventPayloadGenerator payloadGenerator = new ValidatorEventPayloadGenerator();
 
     public LimeWireNetworkAsyncHttpClient(SdkAsyncHttpClient delegate,
-                                          FooterOptions footerOptions,
-                                          LimeWireNetworkSigner signer,
-                                          RequestIdGenerator requestIdGen,
-                                          ValidatorUrlSupplier validatorUrlSupplier,
-                                          ValidatorEventPublisher validatorEventPublisher) {
+                                         FooterOptions footerOptions,
+                                         LimeWireNetworkSigner signer,
+                                         RequestIdGenerator requestIdGen,
+                                         GraphQLClient graphQLClient,
+                                         ValidatorEventPublisher validatorEventPublisher) {
+        this(delegate, footerOptions, signer, requestIdGen, new GraphQLValidatorUrlSupplier(graphQLClient), validatorEventPublisher);
+    }
+
+    public LimeWireNetworkAsyncHttpClient(SdkAsyncHttpClient delegate,
+                                         FooterOptions footerOptions,
+                                         LimeWireNetworkSigner signer,
+                                         RequestIdGenerator requestIdGen,
+                                         ValidatorEventPublisher validatorEventPublisher) {
+        this(delegate, footerOptions, signer, requestIdGen, new GraphQLClient(), validatorEventPublisher);
+    }
+
+    public LimeWireNetworkAsyncHttpClient(SdkAsyncHttpClient delegate,
+                                         FooterOptions footerOptions,
+                                         LimeWireNetworkSigner signer,
+                                         RequestIdGenerator requestIdGen,
+                                         ValidatorUrlSupplier validatorUrlSupplier,
+                                         ValidatorEventPublisher validatorEventPublisher) {
         this.delegate = delegate;
         this.validatorUrlSupplier = validatorUrlSupplier;
         this.eventPublisher = validatorEventPublisher;

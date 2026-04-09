@@ -12,9 +12,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GraphQLClient {
+    public static final String DEFAULT_ENDPOINT = "https://graph.limewire.network/subgraphs/name/lmwrntwrk-v1";
+
     private final String endpointUrl;
     private final String bearerToken;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public GraphQLClient() {
+        this(DEFAULT_ENDPOINT, null);
+    }
 
     public GraphQLClient(String endpointUrl, String bearerToken) {
         this.endpointUrl = endpointUrl;

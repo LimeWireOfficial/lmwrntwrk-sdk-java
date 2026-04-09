@@ -7,6 +7,7 @@ import network.limewire.sdk.footer.BinaryFooterCodec;
 import network.limewire.sdk.footer.FooterOptions;
 import network.limewire.sdk.footer.FooterSession;
 import network.limewire.sdk.footer.FooterSessionFactory;
+import network.limewire.sdk.graphql.GraphQLClient;
 import software.amazon.awssdk.http.*;
 
 import java.io.*;
@@ -26,6 +27,23 @@ public final class LimeWireNetworkHttpClient implements SdkHttpClient {
 
     private final ValidatorEventPayloadGenerator payloadGenerator = new ValidatorEventPayloadGenerator();
 
+
+    public LimeWireNetworkHttpClient(SdkHttpClient delegate,
+                                     FooterOptions footerOptions,
+                                     LimeWireNetworkSigner signer,
+                                     RequestIdGenerator requestIdGen,
+                                     GraphQLClient graphQLClient,
+                                     ValidatorEventPublisher validatorEventPublisher) {
+        this(delegate, footerOptions, signer, requestIdGen, new GraphQLValidatorUrlSupplier(graphQLClient), validatorEventPublisher);
+    }
+
+    public LimeWireNetworkHttpClient(SdkHttpClient delegate,
+                                     FooterOptions footerOptions,
+                                     LimeWireNetworkSigner signer,
+                                     RequestIdGenerator requestIdGen,
+                                     ValidatorEventPublisher validatorEventPublisher) {
+        this(delegate, footerOptions, signer, requestIdGen, new GraphQLClient(), validatorEventPublisher);
+    }
 
     public LimeWireNetworkHttpClient(SdkHttpClient delegate,
                                      FooterOptions footerOptions,

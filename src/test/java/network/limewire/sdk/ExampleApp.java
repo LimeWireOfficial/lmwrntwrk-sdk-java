@@ -32,8 +32,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 public class ExampleApp {
     private static final Logger logger = LoggerFactory.getLogger(ExampleApp.class);
@@ -42,9 +48,9 @@ public class ExampleApp {
         logger.info("LimeWireNetwork SDK Java demo");
 
         // 1) Read configuration from env
-        String bucket = getenvRequired("DEMO_BLOCKNODE_DESTINATION_BUCKET");
-        String endpointUri = System.getenv().getOrDefault("BLOCKNODE_ENDPOINT_URI", "http://localhost:7070");
-        String pkBase64 = System.getenv("DEMO_BLOCKNODE_PRIVATE_KEY_BASE64"); // base64 of private key PEM file for the api key created on the blocknode
+        String bucket = getenvRequired("DEMO_LMWRNTWRK_DESTINATION_BUCKET");
+        String endpointUri = System.getenv().getOrDefault("LMWRNTWRK_ENDPOINT_URI", "https://sp1.strg.com");
+        String pkBase64 = System.getenv("DEMO_LMWRNTWRK_PRIVATE_KEY_BASE64"); // base64 of private key PEM file for the api key created on the LimeWire Network
 
         // 2) Load/generate ECKey for LimeWireNetwork signing
         ECKey key;
@@ -54,7 +60,7 @@ public class ExampleApp {
             logger.info("Using EC private key from env (pubkey: {})", Hex.toHexString(key.getPubKey()));
         } else {
             key = new ECKey();
-            logger.info("No DEMO_BLOCKNODE_PRIVATE_KEY_BASE64 provided — using random key (pubkey: {})", Hex.toHexString(key.getPubKey()));
+            logger.info("No DEMO_LMWRNTWRK_PRIVATE_KEY_KEY_BASE64 provided — using random key (pubkey: {})", Hex.toHexString(key.getPubKey()));
         }
 
         // 2.1) Derive S3-compatible access/secret keys
@@ -72,14 +78,12 @@ public class ExampleApp {
                 FooterOptions.defaultOptions(),
                 bnSigner,
                 reqIdGen,
-                new StaticValidatorUrlSupplier("http://validator-a.localhost"),
                 new DefaultValidatorEventPublisher());
         SdkAsyncHttpClient wrappedAsyncClient = new LimeWireNetworkAsyncHttpClient(
                 NettyNioAsyncHttpClient.builder().build(),
                 FooterOptions.defaultOptions(),
                 bnSigner,
                 reqIdGen,
-                new StaticValidatorUrlSupplier("http://validator-a.localhost"),
                 new DefaultValidatorEventPublisher());
 
         // 4) Build an S3 client with:
@@ -92,7 +96,7 @@ public class ExampleApp {
         S3Client s3 = S3Client.builder()
                 .region(Region.of("lmwrntwrk-region"))
 //                .endpointOverride(URI.create(endpointUri)) // for testing
-                .endpointProvider(new LimeWireEndpointProvider("http://graph-node:8000/subgraphs/name/bn-test-1"))
+                .endpointProvider(new LimeWireEndpointProvider()) // override graph endpoint if needed eg new LimeWireEndpointProvider("http://graph-node-admin.localhost:8000/subgraphs/name/bn-test-1")
                 .overrideConfiguration(c -> c.retryStrategy(cfg -> cfg.maxAttempts(1)))
                 .httpClient(wrappedClient)
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
@@ -102,7 +106,7 @@ public class ExampleApp {
         S3AsyncClient s3AsyncClient = S3AsyncClient.builder()
                 .region(Region.of("lmwrntwrk-region"))
 //                .endpointOverride(URI.create(endpointUri)) // for testing
-                .endpointProvider(new LimeWireEndpointProvider("http://graph-node:8000/subgraphs/name/bn-test-1"))
+                .endpointProvider(new LimeWireEndpointProvider()) // override graph endpoint if needed eg new LimeWireEndpointProvider("http://graph-node-admin.localhost:8000/subgraphs/name/bn-test-1")
                 .overrideConfiguration(c -> c.retryStrategy(cfg -> cfg.maxAttempts(1)))
                 .httpClient(wrappedAsyncClient)
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
@@ -114,33 +118,53 @@ public class ExampleApp {
         /// /////////////////////////
 
         // 5) S3 operations similar to the Go demo
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC);
+        String prefix = "sdk-java-demo-" + formatter.format(Instant.now()) + "/";
+
         // 5.1 Create bucket (expected to fail; buckets are created on-chain)
-        //TODO enable after request filtering is done on client
-//        try {
-//            s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-//            logger.info("Bucket " + bucket + " created but should not be allowed");
-//        } catch (S3Exception e) {
-//            logger.info("Bucket " + bucket + " creating failed with expected error: " + e.awsErrorDetails().errorMessage());
-//        }
+        try {
+            s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+            logger.info("Bucket " + bucket + " created but should not be allowed");
+        } catch (S3Exception e) {
+            logger.info("Bucket " + bucket + " creating failed with expected error: " + e.awsErrorDetails().errorMessage());
+        }
 
         // 5.2 Put a simple text object
+        String textObjectKey = prefix + "test-msg1.txt";
+        logger.info("Uploading text file under prefix: {}", prefix);
         PutObjectResponse putObjectResponse = s3.putObject(
-                PutObjectRequest.builder().bucket(bucket).key("test-msg1.txt").build(),
+                PutObjectRequest.builder().bucket(bucket).key(textObjectKey).build(),
                 RequestBody.fromString("Hello, LimeWireNetwork!", StandardCharsets.UTF_8)
         );
-        logger.info("Put object: test-msg1.txt, etag: {}", putObjectResponse.eTag());
+        logger.info("Put object: {}, etag: {}", textObjectKey, putObjectResponse.eTag());
 
-        // 5.3 List objects
+        // 5.3 Upload an image file
+        String imageFileName = "test-image.png";
+        String imageObjectKey = prefix + imageFileName;
+        logger.info("Uploading image file '{}'...", imageObjectKey);
+
+        Path imageFilePath = Paths.get("src/test/resources/test-data", imageFileName);
+        if (Files.exists(imageFilePath)) {
+            PutObjectResponse putImageRes = s3.putObject(
+                    PutObjectRequest.builder().bucket(bucket).key(imageObjectKey).build(),
+                    RequestBody.fromFile(imageFilePath)
+            );
+            logger.info("Image file uploaded successfully. ETag: {}", putImageRes.eTag());
+        } else {
+            logger.warn("Image file not found at {}, skipping upload.", imageFilePath.toAbsolutePath());
+        }
+
+        // 5.4 List objects
         logger.info("Listing objects in bucket ... ");
         ListObjectsV2Response list = s3.listObjectsV2(ListObjectsV2Request.builder().bucket(bucket).build());
         logger.info("Objects in bucket:");
         list.contents().forEach(o -> logger.info("key={} size={}", o.key(), o.size()));
 
-        // 5.4 Get the text object back and print its body
-        logger.info("Getting object content ...");
-        ResponseBytes<GetObjectResponse> bytes = s3.getObjectAsBytes(GetObjectRequest.builder().bucket(bucket).key("test-msg1.txt").build());
+        // 5.5 Get the text object back and print its body
+        logger.info("Downloading '{}' ...", textObjectKey);
+        ResponseBytes<GetObjectResponse> bytes = s3.getObjectAsBytes(GetObjectRequest.builder().bucket(bucket).key(textObjectKey).build());
         logger.info("Get object etag: {}", bytes.response().eTag());
-        logger.info("Body: {}", bytes.asUtf8String());
+        logger.info("Downloaded content: {}", bytes.asUtf8String());
 
 
         //////////////////////////////
@@ -157,7 +181,7 @@ public class ExampleApp {
         // Create S3 presigned GET URL
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
-                .key("test-msg1.txt")
+                .key(textObjectKey)
                 .build();
 
         logger.info("Presigning object ...");
@@ -182,12 +206,23 @@ public class ExampleApp {
             }
             logger.info("First request succeeded with 200 OK");
 
-            // Perform the second HTTP GET — expect 429 (Too Many Requests)
-            int secondStatus = doGet(psWithBn);
-            if (secondStatus == 429) {
-                logger.info("Second request failed as expected with 429 Too Many Requests");
-            } else {
-                throw new RuntimeException("Expected 429 Too Many Requests, got " + secondStatus);
+            // Perform a few more HTTP GETs — expect 429 (Too Many Requests) eventually
+            boolean got429 = false;
+            for (int i = 0; i < 5; i++) {
+                int status = doGet(psWithBn);
+                if (status == 429) {
+                    got429 = true;
+                    logger.info("Request {} failed as expected with 429 Too Many Requests", i + 2);
+                    break;
+                } else if (status == 200) {
+                    logger.info("Request {} also succeeded with 200 OK", i + 2);
+                } else {
+                    throw new RuntimeException("Expected 200 or 429, got " + status);
+                }
+            }
+
+            if (!got429) {
+                throw new RuntimeException("Expected 429 Too Many Requests after several attempts, but it never happened.");
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -200,14 +235,14 @@ public class ExampleApp {
         try {
             // s3 async put
             PutObjectResponse putAsyncResponse = s3AsyncClient.putObject(
-                    PutObjectRequest.builder().bucket(bucket).key("test-msg1.txt").build(),
+                    PutObjectRequest.builder().bucket(bucket).key(textObjectKey).build(),
                     AsyncRequestBody.fromString("Hello, LimeWireNetwork!", StandardCharsets.UTF_8)
             ).get();
             logger.info("PutAsyncResponse etag: {}", putAsyncResponse.eTag());
 
             // get
             ResponseBytes<GetObjectResponse> getObjectResponse = s3AsyncClient.getObject(
-                    GetObjectRequest.builder().bucket(bucket).key("test-msg1.txt").build(),
+                    GetObjectRequest.builder().bucket(bucket).key(textObjectKey).build(),
                     AsyncResponseTransformer.toBytes()
             ).get();
             logger.info("GetAsync object etag: {}", getObjectResponse.response().eTag());

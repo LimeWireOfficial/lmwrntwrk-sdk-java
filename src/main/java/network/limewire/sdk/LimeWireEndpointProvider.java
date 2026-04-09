@@ -20,6 +20,11 @@ public class LimeWireEndpointProvider implements S3EndpointProvider {
 
     private final GraphQLClient graphQLClient;
 
+    public LimeWireEndpointProvider() {
+        this.graphQLClient = new GraphQLClient();
+    }
+
+
     public LimeWireEndpointProvider(String graphQLEndpoint) {
         this.graphQLClient = new GraphQLClient(graphQLEndpoint, "");
     }
