@@ -16,7 +16,7 @@ Add the following dependency to your `pom.xml`:
 <dependency>
     <groupId>network.limewire.sdk</groupId>
     <artifactId>sdk-java</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 
@@ -25,7 +25,7 @@ Add the following dependency to your `pom.xml`:
 Add the following to your `build.gradle`:
 
 ```gradle
-implementation 'network.limewire.sdk:sdk-java:0.1.1'
+implementation 'network.limewire.sdk:sdk-java:0.1.2'
 ```
 
 ## Example Usage
