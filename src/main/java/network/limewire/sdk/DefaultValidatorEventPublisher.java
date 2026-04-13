@@ -36,11 +36,19 @@ public class DefaultValidatorEventPublisher implements ValidatorEventPublisher {
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) validatorUrl.openConnection();
+            String userAgent = conn.getRequestProperty("User-Agent");
+            if (userAgent != null && !userAgent.isEmpty()) {
+                userAgent += " " + LimeWireNetworkVersion.getUserAgent();
+            } else {
+                userAgent = LimeWireNetworkVersion.getUserAgent();
+            }
+
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "*/*");
             conn.setRequestProperty("Content-Length", Integer.toString(payload.length));
+            conn.setRequestProperty("User-Agent", userAgent);
 
             try (OutputStream out = conn.getOutputStream()) {
                 out.write(payload);

@@ -116,6 +116,7 @@ public class LimeWireNetworkCombinedHttpClientTest {
                 .withHeader("x-lmwrntwrk-Signature", matching(".*"))
                 .withHeader("x-lmwrntwrk-Footer-Length", equalTo("109"))
                 .withHeader("Content-Length", equalTo("360"))
+                .withHeader("User-Agent", containing("LmwrNtwrkJavaSdk/"))
                 .withRequestBody(containing("<?xml version=\"1.0\" encoding=\"UTF-8\"?><CompleteMultipartUpload xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Part><ETag>eTag</ETag><PartNumber>1</PartNumber></Part><Part><ETag>eTag-2</ETag><PartNumber>2</PartNumber></Part></CompleteMultipartUpload>"))
         );
 

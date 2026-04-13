@@ -6,5 +6,6 @@ public class LimeWireNetworkHeaders {
     public static String MAX_REQUEST_COUNT = "x-max-request-count";
     public static String FOOTER_LENGTH = "x-lmwrntwrk-footer-length";
     public static String CHUNK_SIZE = "x-lmwrntwrk-chunk-size";
+    public static String USER_AGENT = "User-Agent";
 
 }

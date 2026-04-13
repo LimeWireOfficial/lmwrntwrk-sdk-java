@@ -26,11 +26,19 @@ class LimeWireNetworkRequestEnricher {
 
         SdkHttpFullRequest.Builder result = originalRequest.toBuilder();
 
+        String userAgent = originalRequest.firstMatchingHeader(LimeWireNetworkHeaders.USER_AGENT).orElse("");
+        if (!userAgent.isEmpty()) {
+            userAgent += " " + LimeWireNetworkVersion.getUserAgent();
+        } else {
+            userAgent = LimeWireNetworkVersion.getUserAgent();
+        }
+
         SdkHttpFullRequest.Builder sdkRequestBuilder = result
                 .putHeader(LimeWireNetworkHeaders.REQUEST_ID, requestId)
                 .putHeader(LimeWireNetworkHeaders.SIGNATURE, signature)
                 .putHeader(LimeWireNetworkHeaders.FOOTER_LENGTH, "109")
-                .putHeader(LimeWireNetworkHeaders.CHUNK_SIZE, String.valueOf(footerOptions.getChunkSize()));
+                .putHeader(LimeWireNetworkHeaders.CHUNK_SIZE, String.valueOf(footerOptions.getChunkSize()))
+                .putHeader(LimeWireNetworkHeaders.USER_AGENT, userAgent);
 
         originalRequest
                 .firstMatchingHeader("Content-Length")

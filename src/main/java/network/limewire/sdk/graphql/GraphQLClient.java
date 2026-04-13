@@ -46,6 +46,7 @@ public class GraphQLClient {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "*/*");
             conn.setRequestProperty("Content-Length", Integer.toString(rawRequestBody.length));
+            conn.setRequestProperty("User-Agent", network.limewire.sdk.LimeWireNetworkVersion.getUserAgent());
 
             if (this.bearerToken != null) {
                 conn.setRequestProperty("Authorization", "Bearer " + this.bearerToken);
