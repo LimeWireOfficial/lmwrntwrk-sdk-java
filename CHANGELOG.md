@@ -1,3 +1,7 @@
+# Release (v0.1.3)
+- feat: event whitelist to send to validator nodes from the SDK
+- feat: augment "user-agent" header with sdk version
+
 # Release (v0.1.2)
 - chore: improve docs and readme for easier onboarding
 - feat: validator resolver using theGraph and default graph url for limewire network
