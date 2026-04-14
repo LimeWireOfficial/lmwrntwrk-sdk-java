@@ -12,6 +12,7 @@ class ValidatorEventSendingContext {
     private Supplier<byte[]> bodySupplier;
     private Supplier<FooterSession.ValidatorPayload> footerSupplier;
     private boolean shouldBufferResponse;
+    private boolean whitelistedForValidator;
 
     public SdkHttpFullRequest getRequest() {
         return request;
@@ -51,5 +52,13 @@ class ValidatorEventSendingContext {
 
     public void setShouldBufferResponse(boolean shouldBufferResponse) {
         this.shouldBufferResponse = shouldBufferResponse;
+    }
+
+    public boolean isWhitelistedForValidator() {
+        return whitelistedForValidator;
+    }
+
+    public void setWhitelistedForValidator(boolean whitelistedForValidator) {
+        this.whitelistedForValidator = whitelistedForValidator;
     }
 }

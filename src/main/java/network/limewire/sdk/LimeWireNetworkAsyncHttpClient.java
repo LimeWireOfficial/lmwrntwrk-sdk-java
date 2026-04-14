@@ -97,6 +97,7 @@ public final class LimeWireNetworkAsyncHttpClient implements SdkAsyncHttpClient 
         context.setFooterSupplier(footerSession::validatorPayload);
         context.setBodySupplier(bufferingPublisher::getBody);
         context.setShouldBufferResponse(s3Action.shouldBufferResponse());
+        context.setWhitelistedForValidator(s3Action.isWhitelistedForValidator());
 
         AsyncExecuteRequest.Builder httpRequestBuilder = AsyncExecuteRequest.builder()
                 .request(updatedRequest)
@@ -200,7 +201,7 @@ public final class LimeWireNetworkAsyncHttpClient implements SdkAsyncHttpClient 
         @Override
         public void onComplete() {
             SdkHttpResponse httpResponse = context.getResponseRef();
-            if (httpResponse == null) {
+            if (httpResponse == null || !context.isWhitelistedForValidator()) {
                 this.delegate.onComplete();
                 return;
             }

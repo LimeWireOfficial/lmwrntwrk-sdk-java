@@ -9,17 +9,25 @@ import java.util.List;
 import java.util.Set;
 
 class AllowedActionsLoader {
-    static Set<String> load() {
+    static Actions load() {
         try {
             ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            Nested nested = objectMapper.readValue(AllowedActionsLoader.class.getResourceAsStream("actions.json"), Nested.class);
-            return Collections.unmodifiableSet(new HashSet<>(nested.actions));
+            return objectMapper.readValue(AllowedActionsLoader.class.getResourceAsStream("actions.json"), Actions.class);
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
     }
 
-    static class Nested {
+    static class Actions {
         public List<String> actions;
+        public List<String> validatorActions;
+
+        public Set<String> getAllowedActions() {
+            return actions == null ? Collections.emptySet() : Collections.unmodifiableSet(new HashSet<>(actions));
+        }
+
+        public Set<String> getValidatorActions() {
+            return validatorActions == null ? Collections.emptySet() : Collections.unmodifiableSet(new HashSet<>(validatorActions));
+        }
     }
 }

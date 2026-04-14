@@ -5,7 +5,9 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import java.util.*;
 
 class S3ActionResolver {
-    private static final Set<String> ALLOWED_ACTIONS = AllowedActionsLoader.load();
+    private static final AllowedActionsLoader.Actions ACTIONS = AllowedActionsLoader.load();
+    private static final Set<String> ALLOWED_ACTIONS = ACTIONS.getAllowedActions();
+    private static final Set<String> VALIDATOR_WHITELIST = ACTIONS.getValidatorActions();
 
     interface S3Action {
         boolean shouldBufferResponse();
@@ -13,10 +15,13 @@ class S3ActionResolver {
         boolean shouldBufferRequest();
 
         boolean isAllowed();
+
+        boolean isWhitelistedForValidator();
     }
 
     static S3Action resolve(SdkHttpRequest request) {
-        String s3Action = resolveAction(request);
+        String action = resolveAction(request);
+        String s3Action = action != null ? action : "";
 
         return new S3Action() {
             @Override
@@ -32,6 +37,11 @@ class S3ActionResolver {
             @Override
             public boolean isAllowed() {
                 return ALLOWED_ACTIONS.contains(s3Action);
+            }
+
+            @Override
+            public boolean isWhitelistedForValidator() {
+                return VALIDATOR_WHITELIST.contains(s3Action);
             }
         };
     }

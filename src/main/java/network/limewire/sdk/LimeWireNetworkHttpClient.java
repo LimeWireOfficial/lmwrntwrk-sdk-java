@@ -76,6 +76,7 @@ public final class LimeWireNetworkHttpClient implements SdkHttpClient {
         context.setFooterSupplier(footerSession::validatorPayload);
         context.setBodySupplier(() -> null);
         context.setShouldBufferResponse(s3Action.shouldBufferResponse());
+        context.setWhitelistedForValidator(s3Action.isWhitelistedForValidator());
 
         HttpExecuteRequest.Builder httpRequestBuilder = HttpExecuteRequest.builder().request(updatedRequest);
         request.contentStreamProvider().ifPresent(original -> {
@@ -93,15 +94,17 @@ public final class LimeWireNetworkHttpClient implements SdkHttpClient {
             public HttpExecuteResponse call() throws IOException {
                 HttpExecuteResponse response = delegateRequest.call();
 
-                payloadGenerator.generate(
-                                context.getBodySupplier().get(),
-                                context.getRequest(),
-                                response.httpResponse().headers(),
-                                delegateRequest.getResponseBody(),
-                                context.getFooterSupplier().get())
-                        .ifPresent(payload -> validatorUrlSupplier.get()
-                                .thenCompose(validatorUrl -> eventPublisher.publish(validatorUrl, payload))
-                                .join());
+                if (context.isWhitelistedForValidator()) {
+                    payloadGenerator.generate(
+                                    context.getBodySupplier().get(),
+                                    context.getRequest(),
+                                    response.httpResponse().headers(),
+                                    delegateRequest.getResponseBody(),
+                                    context.getFooterSupplier().get())
+                            .ifPresent(payload -> validatorUrlSupplier.get()
+                                    .thenCompose(validatorUrl -> eventPublisher.publish(validatorUrl, payload))
+                                    .join());
+                }
 
                 return response;
             }

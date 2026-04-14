@@ -380,6 +380,40 @@ public class LimeWireNetworkCombinedHttpClientTest {
                 });
     }
 
+    @ParameterizedTest
+    @EnumSource(Client.class)
+    void doNotSendNonWhitelistedEventsToValidator(Client client) {
+        wireMock.stubFor(get("/bucket?list-type=2").willReturn(ok()
+                .withHeader("x-lmwrntwrk-sp-signature", "some-signature")
+                .withBody("<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">" +
+                        "   <Name>bucket</Name>" +
+                        "   <Prefix></Prefix>" +
+                        "   <KeyCount>0</KeyCount>" +
+                        "   <MaxKeys>1000</MaxKeys>" +
+                        "   <IsTruncated>false</IsTruncated>" +
+                        "</ListBucketResult>")));
+
+        Consumer<ListObjectsV2Request.Builder> requestBuilder = request -> request.bucket("bucket");
+
+        S3Call<ListObjectsV2Response> call = client == Client.SYNC
+                ? () -> CompletableFuture.completedFuture(createSyncClient().listObjectsV2(requestBuilder))
+                : () -> createAsyncClient().listObjectsV2(requestBuilder);
+
+        ListObjectsV2Response result = call.get();
+        assertThat(result).isNotNull();
+
+        wireMock.verify(getRequestedFor(urlEqualTo("/bucket?list-type=2")));
+
+        // Wait a bit to ensure async publisher has no reason to call validator
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            // ignore
+        }
+
+        wireMock.verify(0, postRequestedFor(urlEqualTo("/validator-a/events")));
+    }
+
     @FunctionalInterface
     interface S3Call<T> {
         CompletableFuture<T> execute();
